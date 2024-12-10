@@ -1,6 +1,7 @@
+local love = require "love"
 -- entities/Player.lua
 local Deck = require "entities.Deck"
-local RuneCollection = require "entities.RuneCollection"
+-- local RuneCollection = require "entities.RuneCollection"
 
 local Player = {}
 Player.__index = Player
@@ -20,7 +21,7 @@ function Player:new(name)
     }
     
     -- Rune management
-    player.runeCollection = RuneCollection:new()
+    --player.runeCollection = RuneCollection:new()
     
     -- Player progression stats
     player.stats = {

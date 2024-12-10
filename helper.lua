@@ -1,4 +1,6 @@
 
+local love = require "love"
+
 function setFullscreen(fullscreen)
     if fullscreen then
         love.window.setMode(1920, 1080, { fullscreen = true })

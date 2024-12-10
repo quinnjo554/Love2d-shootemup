@@ -1,3 +1,4 @@
+local love = require "love"
 ImageHelper = {}
 
 function ImageHelper:new()

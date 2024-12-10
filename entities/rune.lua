@@ -1,3 +1,4 @@
+local love = require "love"
 -- entities/Rune.lua
 local Rune = {}
 Rune.__index = Rune

@@ -1,4 +1,5 @@
 
+local love = require "love"
 Deck = {}
 
 function Deck:new(x,y)

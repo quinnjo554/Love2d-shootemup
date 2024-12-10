@@ -1,3 +1,4 @@
+local love = require "love"
  Card = {}
 
 function Card:new(imagePath,x,y)

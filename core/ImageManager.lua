@@ -1,4 +1,6 @@
 
+
+local love = require "love"
 local AssetManager = {}
 AssetManager.__index = AssetManager
 
