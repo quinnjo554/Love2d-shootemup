@@ -2,76 +2,142 @@ local love = require "love"
 local AssetManager = require "core.AssetManager"
 local StartButton = require "StartButton"
 local SpriteAnimation = require "ui.SpriteAnimation"
+local CreateCommonBackgrounds = require "utils.sharedBackgrounds.sharedBackgrounds"
+local CutsceneSprite = require "ui.AnimatedSprite"
 local LevelSelectUI = {}
+local shallowcopy = require "utils.copyTable"
 
-local time = 0
-function LevelSelectUI:new(onStartGame)
-    local object = {
-        magicMirrorShader = love.graphics.newShader("utils/mirrorShader.glsl"),
-
+function LevelSelectUI:new(gameManager,backgrounds)
+local screenWidth = love.graphics.getWidth()
+    local screenHeight = love.graphics.getHeight()
+  local object = {
         AssetManager = {},
-        -- static background elements
-        backgrounds = {
-
-
-        AssetManager:new("sprites/ui/nature_5/origbig.png",0,0, love.graphics.getWidth(), love.graphics.getHeight(),0),  -- Moving clouds
-        AssetManager:new("sprites/ui/nature_6/origbig.png",0,0, love.graphics.getWidth(), love.graphics.getHeight(),0),  -- Moving clouds
-        AssetManager:new("sprites/ui/forest/mirrorImg2.png",love.graphics.getWidth()/3,love.graphics.getHeight()-450, love.graphics.getWidth()/3, love.graphics.getHeight()/3,0),  -- Moving clouds
+        gameManager = gameManager,
+ pauCutscene = nil,
+        spriteConfig = {
+            startX = -100,
+            startY = 900,  -- Bottom of the screen
+            speed = 50,
+            targetX = screenWidth / 2,
+            targetY = 900, 
+            spriteSheet = "sprites/ui/Player-Sheet-export.png",
+            frameWidth = 128,   -- Add frame width explicitly
+            frameHeight = 128,
+            spriteFrames = 7,
+            spriteScale = 1
         },
+    carCutscene = nil,
+    catConfig = {
+            startX = -190,
+            startY = 935,  -- Bottom of the screen
+            speed = 50,
+            targetX = (screenWidth / 2) - 96,
+            targetY = 935, 
+            spriteSheet = "sprites/ui/forest/CatSprite-Sheet.png",
+            frameWidth = 96,   -- Add frame width explicitly
+            frameHeight = 96,
+            spriteFrames = 7,
+            spriteScale = 1
 
+    },
+                 -- static background elements
+        backgrounds = shallowcopy(backgrounds),
         -- load non static elements
-        startButton = StartButton:new(900,800),
+         --pauSprite = SpriteAnimation:new("sprites/ui/Player.png",96,96,5),
         -- audio
+        audio = self:loadAudio(),
     }
 
-    setmetatable(object, {__index = LevelSelectUI})
+     setmetatable(object, {__index = LevelSelectUI})
 
-    object.startButton.onClick = function()
-    -- Directly call the provided callback when button is clicked
-        if onStartGame then
-            onStartGame()
-        end
-      end
-      return object
 
+    object:initializeCutsceneSprite()
+
+     return object
+
+end
+
+
+function LevelSelectUI:initializeCutsceneSprite()
+    -- Ensure proper initialization with explicit coordinates
+    local config = self.spriteConfig
+    local catConfig = self.catConfig
+    
+    self.catCutsceneSprite = CutsceneSprite:new({
+      x = catConfig.startX,
+      y = catConfig.startY,
+      speed = catConfig.speed,
+      targetX = catConfig.targetX,
+      targetY = catConfig.targetY,
+      spriteSheet = catConfig.spriteSheet,
+      spriteFrames = catConfig.spriteFrames,
+      frameWidth = catConfig.frameWidth,
+      frameHeight = catConfig.frameHeight,
+      spriteScale = catConfig.spriteScale
+    })
+    -- Create a debug version that logs initialization
+    self.customCutsceneSprite = CutsceneSprite:new({
+        x = config.startX,
+        y = config.startY,
+        speed = config.speed,
+        targetX = config.targetX,
+        targetY = config.targetY,
+        spriteSheet = config.spriteSheet,
+        spriteFrames = config.spriteFrames,
+        frameWidth = config.frameWidth,
+        frameHeight = config.frameHeight,
+        spriteScale = config.spriteScale
+    })
+    
+    -- Start the cutscene movement
+    self.customCutsceneSprite:startCutscene()
+    self.catCutsceneSprite:startCutscene()
+    
 end
 
 function LevelSelectUI:loadAudio()
     self.audio = {
         backgroundMusic = love.audio.newSource("audio/main_menu/main_theme.mp3", "stream"),
     }
+    self.audio.backgroundMusic:setLooping(true)
+    self.audio.backgroundMusic:play()
+    self.audio.backgroundMusic:setVolume(0)
 end
 
+function LevelSelectUI:setInitialBackgrounds(backgrounds)
+    -- Option 1: Direct copy
+    self.backgrounds = backgrounds
+
+    -- Option 2: Create a smooth transition effect
+    for _, bg in ipairs(backgrounds) do
+        -- You might want to adjust position, speed, etc.
+        table.insert(self.backgrounds, bg)
+    end
+end
 -- move background ui elements
 function LevelSelectUI:update(dt)
-self.time = (self.time or 0) + dt -- Increment time
-    self.magicMirrorShader:send("SCREEN_SIZE", {love.graphics.getWidth(), love.graphics.getHeight()})
-    self.magicMirrorShader:send("TIME", self.time)
-
+    if self.gameManager.currentState == "LEVEL" then
+      self.audio.backgroundMusic:setVolume(0.5)
+    end
     for _, background in ipairs(self.backgrounds) do
         background:update(dt)
     end
-
     local mouse_x, mouse_y = love.mouse.getPosition()
-    self.startButton:update( mouse_x, mouse_y)
-
+  self.customCutsceneSprite:update(dt)
+  self.catCutsceneSprite:update(dt)
 end
 
 -- draw ui elemementrs
 function LevelSelectUI:draw(index)
     for i, background in ipairs(self.backgrounds) do
-      if i == 1 then
-          love.graphics.setShader(self.magicMirrorShader)
-      end
       background:draw()
-      love.graphics.setShader()
     end
-    self.startButton:draw()
+  self.customCutsceneSprite:draw()
+  self.catCutsceneSprite:draw()
+
+  -- debug customCutsceneSprite
 end
 function LevelSelectUI:handleMousePress(x, y, button)
-    if self.startButton and self.startButton.handleMousePress then
-        self.startButton:handleMousePress(x, y, button)
-    end
 end
 
 

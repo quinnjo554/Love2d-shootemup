@@ -26,7 +26,10 @@ function AssetManager:update(dt)
     end
 end
 
-function AssetManager:draw()
+function AssetManager:draw(alpha)
+    if alpha == nil then
+      alpha = 1
+    end
     love.graphics.draw(
         self.image, 
         self.x, 
@@ -47,6 +50,7 @@ function AssetManager:draw()
           self.scaleY
       )
     end
+  love.graphics.setColor(1, 1, 1, alpha)
     
 end
 

@@ -4,8 +4,10 @@
 local love = require "love"
 local MainMenuUI = require "ui/MainMenuUI"
 local LevelSelectUI = require "ui/LevelSelectUI"
+local CreateCommonBackgrounds = require "utils.sharedBackgrounds.sharedBackgrounds"
 local UIManager = {}
 
+local sharedBackgrounds = CreateCommonBackgrounds()
 function UIManager:new(gameManager)
     local object = {
      -- deckBuilder = nil,
@@ -15,8 +17,9 @@ function UIManager:new(gameManager)
           if gameManager then
           gameManager:transitionToState("LEVEL")
           end
-      end),
-      level = LevelSelectUI:new(),
+      end, sharedBackgrounds),
+      level = LevelSelectUI:new(gameManager,sharedBackgrounds),
+          
     }
     setmetatable(object, {__index = UIManager})
    

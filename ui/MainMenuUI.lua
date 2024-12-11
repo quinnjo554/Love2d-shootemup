@@ -2,28 +2,26 @@ local love = require "love"
 local AssetManager = require "core.AssetManager"
 local StartButton = require "StartButton"
 local SpriteAnimation = require "ui.SpriteAnimation"
+local CreateCommonBackground = require "utils.sharedBackgrounds.sharedBackgrounds"
+local shallowcopy = require "utils.copyTable"
 local MainMenuUI = {}
 
-function MainMenuUI:new(onStartGame)
+function MainMenuUI:new(onStartGame,backgrounds)
     local object = {
         AssetManager = {},
         -- static background elements
-        backgrounds = {
-        --AssetManager:new("sprites/ui/nature_5/1.png",0,0, love.graphics.getWidth(), love.graphics.getHeight(),0),  -- Moving clouds
-        AssetManager:new("sprites/ui/forest/1-export.png",0,0, love.graphics.getWidth(), love.graphics.getHeight(),10),  -- Moving clouds
-        AssetManager:new("sprites/ui/nature_5/3-export.png",0,0, love.graphics.getWidth(), love.graphics.getHeight(),10),  -- Moving clouds
-        AssetManager:new("sprites/ui/nature_5/4-export.png",0,0, love.graphics.getWidth() * 1.5, love.graphics.getHeight(),7),  -- Moving clouds
-        AssetManager:new("sprites/ui/forest/GameLogo2.png",525,150, love.graphics.getWidth() /2, love.graphics.getHeight() /2, 0),  -- Static background
-        },
-
+        backgrounds = shallowcopy(backgrounds),
         -- load non static elements
-        --catSprite = SpriteAnimation:new("sprites/ui/forest/CatSprite-Sheet.png",96,96,5),
         startButton = StartButton:new(900,800),
         -- audio
         audio = self:loadAudio(),
+        logoAlpha = 0,
+        buttonAlpha = 0,
     }
 
     setmetatable(object, {__index = MainMenuUI})
+
+    table.insert(object.backgrounds,AssetManager:new("sprites/ui/main_logo3.png", 525, 150, love.graphics.getWidth() /2, love.graphics.getHeight() /2, 0))
 
     object.startButton.onClick = function()
     -- Directly call the provided callback when button is clicked
@@ -52,18 +50,15 @@ function MainMenuUI:update(dt)
     end
 
     local mouse_x, mouse_y = love.mouse.getPosition()
-    --self.catSprite:update(dt)
     self.startButton:update( mouse_x, mouse_y)
-
 
 end
 
 -- draw ui elemementrs
 function MainMenuUI:draw(index)
-    for _, background in ipairs(self.backgrounds) do
+    for i, background in ipairs(self.backgrounds) do
       background:draw()
     end
-    --self.catSprite:draw(1520,  200,  2)
     -- Draw the start button
     self.startButton:draw()
     -- meed to draw start button isHovered
