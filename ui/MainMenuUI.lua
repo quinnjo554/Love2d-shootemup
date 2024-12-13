@@ -3,12 +3,14 @@ local AssetManager = require "core.AssetManager"
 local StartButton = require "StartButton"
 local SpriteAnimation = require "ui.SpriteAnimation"
 local CreateCommonBackground = require "utils.sharedBackgrounds.sharedBackgrounds"
+local EventManager = require "core.EventManager"
 local shallowcopy = require "utils.copyTable"
 local MainMenuUI = {}
 
-function MainMenuUI:new(onStartGame,backgrounds)
+function MainMenuUI:new(eventManager,backgrounds)
     local object = {
         AssetManager = {},
+        eventManager = eventManager,
         -- static background elements
         backgrounds = shallowcopy(backgrounds),
         -- load non static elements
@@ -25,9 +27,8 @@ function MainMenuUI:new(onStartGame,backgrounds)
 
     object.startButton.onClick = function()
     -- Directly call the provided callback when button is clicked
-        object.audio.backgroundMusic:stop()
-        if onStartGame then
-            onStartGame()
+        if eventManager then
+            eventManager:emit(EventManager.Types.STATE_CHANGED,"LEVEL")
         end
       end
       return object

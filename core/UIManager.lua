@@ -1,28 +1,36 @@
 -- core/GameManager.lua
 -- TODO: Take funtionality from main.lua and put it in GameManager.lua
 -- TODO: Make a asset manager so you can store the image, x,y,w,z
-local love = require "love"
 local MainMenuUI = require "ui/MainMenuUI"
 local LevelSelectUI = require "ui/LevelSelectUI"
 local CreateCommonBackgrounds = require "utils.sharedBackgrounds.sharedBackgrounds"
-local UIManager = {}
+local EventManager = require "core.EventManager"
 
+local UIManager = {}
+-- Find better way to share backgrounds
 local sharedBackgrounds = CreateCommonBackgrounds()
-function UIManager:new(gameManager)
+
+function UIManager:new(eventManager)
     local object = {
      -- deckBuilder = nil,
       currentScreen = "",
-      gameManager = nil,
-      mainMenu = MainMenuUI:new(function ()
-          if gameManager then
-          gameManager:transitionToState("LEVEL")
-          end
-      end, sharedBackgrounds),
-      level = LevelSelectUI:new(gameManager,sharedBackgrounds),
-          
+      eventManager = eventManager,
+      mainMenu = nil,
+      level = nil          
     }
+
+    object.mainMenu = MainMenuUI:new(object.eventManager, sharedBackgrounds)
+    
+    -- Create LevelSelectUI with event-based transition
+    object.level = LevelSelectUI:new(object.eventManager, sharedBackgrounds)
+ 
     setmetatable(object, {__index = UIManager})
-   
+    
+    -- subscribe to state changes
+    eventManager:on(EventManager.Types.STATE_CHANGED, function(newState)
+        object:SetCurrentScreen(newState)
+    end)
+  
     return object
 end
 -- Main menu screen will just be Background and a button
@@ -52,10 +60,14 @@ function UIManager:HandleMouseMoved(x, y)
 end
 
 function UIManager:Update(dt, mouse_x, mouse_y)
+  if self.currentScreen  then
     self.currentScreen:update(dt, mouse_x, mouse_y)
+  end
 end
 
 function UIManager:Draw()
-    self.currentScreen:draw()
+    if self.currentScreen then
+      self.currentScreen:draw()
+    end
 end
 return UIManager

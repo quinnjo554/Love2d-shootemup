@@ -1,6 +1,5 @@
 local love = require "love"
 local SpriteAnimation = require "ui.SpriteAnimation"
-
 local CutsceneSprite = {}
 
 function CutsceneSprite:new(options)
@@ -40,7 +39,11 @@ function CutsceneSprite:new(options)
         targetX = config.targetX,
         targetY = config.targetY,
         movementState = config.movementState,
-        spriteScale = config.spriteScale
+        spriteScale = config.spriteScale,
+        
+        -- Add smooth movement interpolation variables
+        moveProgress = 0,
+        moveDuration = 0
     }
     
     -- Set metatable
@@ -58,34 +61,42 @@ function CutsceneSprite:new(options)
     return object
 end
 
--- Update sprite position and movement
+-- Update sprite position and movement with smooth interpolation
 function CutsceneSprite:update(dt)
-    self.pauSprite:update(dt)
     if self.movementState == "moving" then
-        local currentX, currentY = self.x, self.y
+        -- Calculate total movement distance
+        local dx = self.targetX - self.x
+        local dy = self.targetY - self.y
+        local totalDistance = math.sqrt(dx*dx + dy*dy)
         
-        -- Calculate direction vector
-        local dx = self.targetX - currentX
-        local dy = self.targetY - currentY
+        -- Calculate movement duration based on distance and speed
+        if self.moveDuration == 0 then
+            self.moveDuration = totalDistance / self.speed
+        end
         
-        -- Calculate distance
-        local distance = math.sqrt(dx*dx + dy*dy)
+        -- Update movement progress
+        self.moveProgress = self.moveProgress + dt
         
-        -- If close to target, stop moving
-        if distance < 10 then
+        -- Use smooth interpolation (easing)
+        local t = math.min(self.moveProgress / self.moveDuration, 1)
+        -- Smooth step interpolation (smooths start and end)
+        t = t * t * (3 - 2 * t)
+        
+        -- Interpolate position
+        self.x = self.x + (self.targetX - self.x) * t
+        self.y = self.y + (self.targetY - self.y) * t
+        
+        -- Check if movement is complete
+        if t >= 1 then
             self.x = self.targetX
             self.y = self.targetY
             self.movementState = "centered"
-        else
-            -- Normalize and move
-            local moveDistance = self.speed * dt
-            local ratio = moveDistance / distance
-            
-            self.x = currentX + dx * ratio
-            self.y = currentY + dy * ratio
+            self.moveProgress = 0
+            self.moveDuration = 0
         end
         
         -- Update sprite animation
+        self.pauSprite:update(dt)
     end
 end
 
@@ -100,6 +111,8 @@ end
 function CutsceneSprite:startCutscene()
     if self.movementState == "offscreen" then
         self.movementState = "moving"
+        self.moveProgress = 0
+        self.moveDuration = 0
     end
 end
 
@@ -108,6 +121,8 @@ function CutsceneSprite:reset()
     self.x = -100
     self.y = love.graphics.getHeight() - 100
     self.movementState = "offscreen"
+    self.moveProgress = 0
+    self.moveDuration = 0
 end
 
 return CutsceneSprite

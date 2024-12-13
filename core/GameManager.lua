@@ -1,35 +1,63 @@
 -- core/GameManager.lua
--- make a visual list of logic u need to implement
--- make a visual list of logic u need to implement
 local UIManager = require "core.UIManager"
+local EventManager = require "core.EventManager"
+local RunManager = require "core.RunManager"
 local GameManager = {}
 GameManager.__index = GameManager
 
+-- TODO: 
+-- GameManager should handle creation of all objects
+-- State manager should hanle all state, and pass views to any object that needs state
+-- Runcontent should be in state manager and not exist
+--
 function GameManager:new()
-    local manager = setmetatable({}, self)
-    manager.uiManager = UIManager:new(manager)
+
+    local manager = {
+
+     eventManager = EventManager:new(),
+    runContent = nil,
+    currentPath = 0, 
    -- manager.stateManager = StateManager:new()
-    manager.currentState = "MAIN_MENU"
+   currentState = "MAIN_MENU",
+  uiManager = nil
+  }
+
+  setmetatable(manager, GameManager)
+
+
+    manager:setupPathRequestHandler()
+    manager.runContent = RunManager:new(manager.eventManager)
+    manager.uiManager = UIManager:new(manager.eventManager)
+
     
+
+ manager.eventManager:on(EventManager.Types.STATE_CHANGED, function(newState)
+        manager:transitionToState(newState)
+    end)
+
     return manager
 end
 
+function GameManager: setupPathRequestHandler()
+  -- Handle the REQUEST_CURRENT_RUN_PATH event
+       
+    self.eventManager:on(EventManager.Types.REQUEST_CURRENT_RUN_PATH, function()
+        local currentPath = self.runContent:CurrPath()
+        self.currentPath = currentPath  -- Update currentPath
+        -- Emit the response with the current path
+        self.eventManager:emit(EventManager.Types.CURRENT_RUN_PATH_RESPONSE, { currentPath = currentPath} )
+    end)
+
+
+ end
+
+
 function GameManager:transitionToState(newState)
     self.currentState = newState
-    -- State transition logic
-    local stateTransitions = {
-        ["MAIN_MENU"] = function() 
-        self.uiManager:SetCurrentScreen("MAIN_MENU")
-        end,
-        ["LEVEL"] = function() 
-            self.uiManager:SetCurrentScreen("LEVEL")
-            self.currentState = "LEVEL"
-        end
-    }
+    self.eventManager:emit("PreStateChange", self.currentState)
     
-    if stateTransitions[newState] then
-        stateTransitions[newState]()
-    end
+    -- You can add more specific state transition logic here
+    self.eventManager:emit("PostStateChange", newState)
 end
 
 function GameManager:start()
@@ -38,10 +66,8 @@ function GameManager:start()
 end
 
 function GameManager:draw()
-    -- Delegate drawing to UI manager
     self.uiManager:Draw()
-    -- Draw the current game state
-    love.graphics.print("Current State: " .. self.currentState, 10, 10)
+    love.graphics.print("Current state: " .. type(self.currentPath), 10, 10)
 end
 
 function GameManager:startBattle(levelData)
