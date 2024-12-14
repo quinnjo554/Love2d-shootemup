@@ -7,30 +7,16 @@ local Player = {}
 Player.__index = Player
 
 function Player:new(name)
-    local player = setmetatable({}, self)
-    
-    player.name = name
-    player.level = 1
-    player.experience = 0
-    
-    -- Multiple decks for different strategies
-    player.decks = {
-        default = Deck:new(),
-        aggressive = Deck:new(),
-        defensive = Deck:new()
+ local player = {
+        mana = stats.mana or Config.PLAYER_DEFAULTS.mana,
+        attack = stats.attack or Config.PLAYER_DEFAULTS.attack,
+        defense = stats.defense or Config.PLAYER_DEFAULTS.defense,
+        hand = {},
+        deck = {}, -- Fill with Card objects
+       -- give invisible level for unlocks
     }
     
-    -- Rune management
-    --player.runeCollection = RuneCollection:new()
-    
-    -- Player progression stats
-    player.stats = {
-        health = 100,
-        mana = 100,
-        maxHealth = 100,
-        maxMana = 100
-    }
-    
+    setmetatable(player, self)
     return player
 end
 
