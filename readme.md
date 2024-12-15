@@ -108,4 +108,4 @@ BALATRO code nots
 
 Having a Sprite,SaveManager,Movable, event, and GOLBAL variables help alot with game cohesion.
 
-
+So in this project pass paths to objects and init the asset in the class stay consistant

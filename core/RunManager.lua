@@ -1,6 +1,7 @@
 local RunManager = {}
 local LinkedList = require("utils.LinkedList")
 local Level = require("levels.Level")
+local CONFIG = require("utils.config")
 
 function RunManager:new(eventManager)
 	local manager = {
@@ -36,7 +37,7 @@ function RunManager:InitPaths()
 		for j = 1, love.math.random(1, 3) do
 			local random = love.math.random(1, 3)
 			local img = self:generateImage(random)
-			table.insert(levelArray, Level:new("level", img))
+			table.insert(levelArray, Level:new("level", img.preview, img))
 		end
 		self.paths:append(levelArray)
 	end
@@ -52,15 +53,15 @@ end
 
 function RunManager:generateImage(random)
 	if random == 1 then
-		return "sprites/ui/nature_1/orig.png"
+		return CONFIG.LEVEL_BACKGROUNDS.LEVEL_1
 	elseif random == 2 then
-		return "sprites/ui/nature_5/orig.png"
+		return CONFIG.LEVEL_BACKGROUNDS.LEVEL_2
 	elseif random == 3 then
-		return "sprites/ui/nature_6/orig.png"
+		return CONFIG.LEVEL_BACKGROUNDS.LEVEL_3
 	elseif random == 4 then
-		return "sprites/orig.png"
+		return CONFIG.LEVEL_BACKGROUNDS.LEVEL_4
 	else
-		return "sprites/orig.png"
+		return CONFIG.LEVEL_BACKGROUNDS.LEVEL_1
 	end
 end
 

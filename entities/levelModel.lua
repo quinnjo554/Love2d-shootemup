@@ -19,8 +19,8 @@ function LevelModel:new(x, y, width, height, levelContent, transitionState, even
 		-- Calculated properties
 		imageX = x + 120,
 		imageY = y + 100,
-		imageWidth = levelContent[1].background:getWidth(),
-		imageHeight = levelContent[1].background:getHeight(),
+		imageWidth = levelContent[1].previewImg:getWidth(),
+		imageHeight = levelContent[1].previewImg:getHeight(),
 
 		-- Styling properties
 		backgroundColor = { 0.3, 0.3, 0.35, 0.7 },
@@ -119,10 +119,10 @@ end
 -- Draw Current Level Preview
 function LevelModel:drawLevelPreview()
 	local currentLevel = self.levelContent[self.currentLevelIndex]
-	local scaledWidth = currentLevel.background:getWidth() * 0.8
-	local scaledHeight = currentLevel.background:getHeight() * 0.8
+	local scaledWidth = currentLevel.previewImg:getWidth() * 0.8
+	local scaledHeight = currentLevel.previewImg:getHeight() * 0.8
 
-	local levelAsset = AssetManager:new(currentLevel.path, self.imageX, self.imageY, scaledWidth, scaledHeight)
+	local levelAsset = AssetManager:new(currentLevel.previewPath, self.imageX, self.imageY, scaledWidth, scaledHeight)
 
 	self.borderAsset:draw()
 	levelAsset:draw()

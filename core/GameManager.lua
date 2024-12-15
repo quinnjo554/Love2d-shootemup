@@ -3,6 +3,7 @@ local UIManager = require("core.UIManager")
 local EventManager = require("core.EventManager")
 local RunManager = require("core.RunManager")
 local Player = require("entities.player")
+local BattleSystem = require("battle.BattleSystem")
 local GameManager = {}
 GameManager.__index = GameManager
 
@@ -15,7 +16,8 @@ function GameManager:new()
 	local manager = {
 
 		eventManager = EventManager:new(),
-		--	player = Player:new(), -- for player init grab all there cards, levels, runs completed etc
+		-- battleSystem = BattleSystem:new(),
+		player = Player:new("DEFAULT"), -- for player init grab all there cards, levels, runs completed etc
 		runContent = nil,
 		currentPath = 0,
 		-- manager.stateManager = StateManager:new()
@@ -28,7 +30,7 @@ function GameManager:new()
 	manager:setupPathRequestHandler()
 	manager.runContent = RunManager:new(manager.eventManager)
 
-	manager.uiManager = UIManager:new(manager.eventManager)
+	manager.uiManager = UIManager:new(manager.eventManager, manager.player)
 
 	manager.eventManager:on(EventManager.Types.STATE_CHANGED, function(newState)
 		manager:transitionToState(newState)

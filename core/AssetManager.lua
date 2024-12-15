@@ -1,22 +1,32 @@
 -- AssetManager.lua
 local AssetManager = {}
-function AssetManager:new(image, x, y, width, height, speed)
+function AssetManager:new(imagePath, x, y, width, height, speed)
 	local manager = {
-		image = love.graphics.newImage(image),
+		image = nil,
+		imagePath = imagePath,
 		x = x,
 		y = y,
 		width = width,
 		height = height,
 		speed = speed or 0,
-		scaleX = width / love.graphics.newImage(image):getWidth(),
-		scaleY = height / love.graphics.newImage(image):getHeight(),
+		scaleX = width / love.graphics.newImage(imagePath):getWidth(),
+		scaleY = height / love.graphics.newImage(imagePath):getHeight(),
 	}
 	setmetatable(manager, self)
 	self.__index = self
 	return manager
 end
 
+function AssetManager:loadImage()
+	if not self.image then
+		self.image = love.graphics.newImage(self.imagePath)
+		self.scaleX = self.width / self.image:getWidth()
+		self.scaleY = self.height / self.image:getHeight()
+	end
+end
+
 function AssetManager:update(dt)
+	self:loadImage()
 	-- Move the image by its speed
 	self.x = self.x - self.speed * dt
 
@@ -27,6 +37,7 @@ function AssetManager:update(dt)
 end
 
 function AssetManager:draw(alpha)
+	self:loadImage()
 	if alpha == nil then
 		alpha = 1
 	end

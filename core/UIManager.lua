@@ -11,11 +11,12 @@ local UIManager = {}
 -- Find better way to share backgrounds for main and level, I have a fix, just add the model to the main menu
 local sharedBackgrounds = CreateCommonBackgrounds()
 
-function UIManager:new(eventManager)
+function UIManager:new(eventManager, player)
 	local object = {
 		-- deckBuilder = nil,
 		currentScreen = "",
 		eventManager = eventManager,
+		player = player,
 		mainMenu = nil,
 		level = nil,
 		battle = nil,
@@ -25,7 +26,7 @@ function UIManager:new(eventManager)
 	-- Create LevelSelectUI with event-based transition
 	object.level = LevelSelectUI:new(object.eventManager, sharedBackgrounds)
 
-	object.battle = BattleUI:new(object.eventManager)
+	object.battle = BattleUI:new(object.eventManager, object.player)
 
 	setmetatable(object, { __index = UIManager })
 
