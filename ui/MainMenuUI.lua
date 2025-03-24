@@ -15,7 +15,18 @@ function MainMenuUI:new(eventManager, backgrounds)
 		-- static background elements
 		backgrounds = shallowcopy(backgrounds),
 		-- load non static elements
-		startButton = StartButton:new(CONFIG.SCREEN_WIDTH + 100, CONFIG.SCREEN_HEIGHT + CONFIG.SCREEN_HEIGHT / 4),
+		startButton = StartButton:new(
+			CONFIG.SCREEN_WIDTH + 100,
+			CONFIG.SCREEN_HEIGHT + CONFIG.SCREEN_HEIGHT / 4,
+			"Start"
+		),
+		musicToggle = StartButton:new(
+			CONFIG.SCREEN_WIDTH + 100,
+			CONFIG.SCREEN_HEIGHT + CONFIG.SCREEN_HEIGHT / 4 + 100,
+			"Music",
+			100,
+			50
+		),
 		-- audio
 		audio = self:loadAudio(),
 		logoAlpha = 0,
@@ -24,6 +35,7 @@ function MainMenuUI:new(eventManager, backgrounds)
 
 	setmetatable(object, { __index = MainMenuUI })
 
+	object:loadAudio()
 	table.insert(
 		object.backgrounds,
 		AssetManager:new(
@@ -35,13 +47,21 @@ function MainMenuUI:new(eventManager, backgrounds)
 			0
 		)
 	)
-
 	object.startButton.onClick = function()
 		-- Directly call the provided callback when button is clicked
 		if eventManager then
 			eventManager:emit(EventManager.Types.STATE_CHANGED, "LEVEL")
 		end
 	end
+
+	object.musicToggle.onClick = function()
+		if object.audio.backgroundMusic:isPlaying() then
+			object.audio.backgroundMusic:pause()
+		else
+			object.audio.backgroundMusic:play()
+		end
+	end
+
 	return object
 end
 
@@ -49,7 +69,7 @@ function MainMenuUI:loadAudio()
 	self.audio = {
 		backgroundMusic = love.audio.newSource("audio/main_menu/main_theme.mp3", "stream"),
 	}
-
+	self.audio.backgroundMusic:setVolume(CONFIG.OPTIONS.MUSIC_VOLUME)
 	self.audio.backgroundMusic:setLooping(true)
 	self.audio.backgroundMusic:play()
 end
@@ -62,6 +82,7 @@ function MainMenuUI:update(dt)
 
 	local mouse_x, mouse_y = love.mouse.getPosition()
 	self.startButton:update(mouse_x, mouse_y)
+	self.musicToggle:update(mouse_x, mouse_y)
 end
 
 -- draw ui elemementrs
@@ -71,6 +92,7 @@ function MainMenuUI:draw(index)
 	end
 	-- Draw the start button
 	self.startButton:draw()
+	self.musicToggle:draw()
 	-- meed to draw start button isHovered
 	--
 	love.graphics.print("Start Button isHovered: " .. tostring(self.startButton.isHovered), 100, 160)
@@ -78,6 +100,9 @@ end
 function MainMenuUI:handleMousePress(x, y, button)
 	if self.startButton and self.startButton.handleMousePress then
 		self.startButton:handleMousePress(x, y, button)
+	end
+	if self.musicToggle and self.musicToggle.handleMousePress then
+		self.musicToggle:handleMousePress(x, y, button)
 	end
 end
 

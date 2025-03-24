@@ -25,6 +25,11 @@ function AssetManager:loadImage()
 	end
 end
 
+function AssetManager:setPos(x, y)
+	self.x = x
+	self.y = y
+end
+
 function AssetManager:update(dt)
 	self:loadImage()
 	-- Move the image by its speed

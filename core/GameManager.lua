@@ -17,6 +17,7 @@ function GameManager:new()
 
 		eventManager = EventManager:new(),
 		-- battleSystem = BattleSystem:new(),
+		-- gamePerspective = 2d-Down , 2d-Lef, 3d
 		player = Player:new("DEFAULT"), -- for player init grab all there cards, levels, runs completed etc
 		runContent = nil,
 		currentPath = 0,
@@ -28,7 +29,7 @@ function GameManager:new()
 	setmetatable(manager, GameManager)
 
 	manager:setupPathRequestHandler()
-	manager.runContent = RunManager:new(manager.eventManager)
+	manager.runContent = RunManager:new(manager.eventManager, self.player)
 
 	manager.uiManager = UIManager:new(manager.eventManager, manager.player)
 
