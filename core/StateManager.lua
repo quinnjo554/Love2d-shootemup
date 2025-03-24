@@ -1,7 +1,7 @@
 local love = require "love"
 -- core/GameManager.lua
 local Player = require "entities.Player"
-local LevelManager = require "core.LevelManager"
+local LevelManager = require "core.RunManager"
 --local UIManager = require "ui.UIManager"
 
 local StateManager = {}

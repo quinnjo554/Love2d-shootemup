@@ -100,3 +100,14 @@ function GameManager:saveGame()
 end
 
 return GameManager
+
+I like the idea of game programming and developemnt orginization to be layered like a tree
+Like a tree, the root of the tree is the GameManager  witch branches to whatever, but if you need to restart/change anything you just drop that branch and reinit. kinda fun.
+
+BALATRO code nots
+
+Having a Sprite,SaveManager,Movable, event, and GOLBAL variables help alot with game cohesion.
+
+So in this project pass paths to objects and init the asset in the class stay consistant
+
+Not sure how i would do controller support. For now just map the up down left right to arrow keys and shoot to z
