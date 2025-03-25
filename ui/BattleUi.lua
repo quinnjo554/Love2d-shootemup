@@ -4,10 +4,10 @@ local SpriteAnimation = require("ui.SpriteAnimation")
 local CONFIG = require("utils.config")
 local BattleUI = {}
 -- make the background move
-function BattleUI:new(eventManager, player)
+function BattleUI:new(eventManager, stateManager, player)
 	local battleUI = {
 		eventManager = eventManager,
-		player = player, -- add gameObjects to player to look at what needs to be checked in collision
+		stateManager = stateManager,
 		levelContent = nil,
 		backgroundAssets = {},
 		count = 0,
@@ -21,10 +21,12 @@ function BattleUI:new(eventManager, player)
 			5
 		),
 		gameObjects = {},
+		player = player,
 	}
 	setmetatable(battleUI, { __index = BattleUI })
 
 	battleUI:getLevelContent()
+
 	return battleUI
 end
 
@@ -35,7 +37,6 @@ function BattleUI:CheckWinCondition()
 
 		-- Emit the battle won event with the current level data
 		self.eventManager:emit(EventManager.Types.BATTLE_WON, {
-			level = self.currentLevel,
 			player = self.player,
 		})
 	end
@@ -43,10 +44,12 @@ end
 
 function BattleUI:getLevelContent()
 	self.eventManager:on(EventManager.Types.BATTLE_INITIATED, function(currentLevel)
-		self.currentLevel = currentLevel
+		self.currentLevel = self.stateManager:get("run.currentLevel")
+		self.stateManager:set("battle.isActive", true)
+		self.stateManager:set("battle.enemies", currentLevel.enemies)
 		self.battleWon = false
 
-		for _, spriteInfo in ipairs(currentLevel.paths.sprites) do
+		for _, spriteInfo in ipairs(self.currentLevel.paths.sprites) do
 			local sprite = spriteInfo.sprite
 			local speed = spriteInfo.speed or 0
 			table.insert(
@@ -55,7 +58,7 @@ function BattleUI:getLevelContent()
 			)
 		end
 
-		self.gameObjects = currentLevel.enemies
+		self.gameObjects = self.currentLevel.enemies
 
 		print("Battle initiated with level: " .. currentLevel.levelName)
 		print("Enemies loaded: " .. #self.gameObjects)
@@ -63,6 +66,13 @@ function BattleUI:getLevelContent()
 end
 
 function BattleUI:update(dt)
+	--optimize by making an event in enemy for every time its destroyed and emmit it there then on that event checkwincondition
+	self.checkWinTimer = (self.checkWinTimer or 0) + dt
+	if self.checkWinTimer >= 0.5 then
+		self:CheckWinCondition()
+		self.checkWinTimer = 0
+	end
+
 	if self.backgroundAssets and #self.backgroundAssets > 0 then
 		for _, asset in ipairs(self.backgroundAssets) do
 			asset:update(dt)
@@ -75,7 +85,9 @@ function BattleUI:update(dt)
 		end
 	end
 
-	self.player:update(dt, self.gameObjects)
+	if self.player then
+		self.player:update(dt, self.gameObjects)
+	end
 
 	self.checkWinTimer = self.checkWinTimer + dt
 	if self.checkWinTimer >= 0.5 then

@@ -8,10 +8,11 @@ local CONFIG = require("utils.config")
 local shallowcopy = require("utils.copyTable")
 local MainMenuUI = {}
 
-function MainMenuUI:new(eventManager, backgrounds)
+function MainMenuUI:new(eventManager, stateManager, backgrounds)
 	local object = {
 		AssetManager = {},
 		eventManager = eventManager,
+		stateManager = stateManager,
 		-- static background elements
 		backgrounds = shallowcopy(backgrounds),
 		-- load non static elements

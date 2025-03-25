@@ -3,7 +3,9 @@ local UIManager = require("core.UIManager")
 local EventManager = require("core.EventManager")
 local RunManager = require("core.RunManager")
 local Player = require("entities.player")
+local CONFIG = require("utils.config")
 local BattleSystem = require("battle.BattleSystem")
+local StateManager = require("core.StateManager")
 local GameManager = {}
 GameManager.__index = GameManager
 
@@ -16,23 +18,24 @@ function GameManager:new()
 	local manager = {
 
 		eventManager = EventManager:new(),
+		stateManager = StateManager:new(),
 		-- battleSystem = BattleSystem:new(),
 		-- gamePerspective = 2d-Down , 2d-Lef, 3d
-		player = Player:new("DEFAULT"), -- for player init grab all there cards, levels, runs completed etc
+		player = nil,
 		runContent = nil,
-		currentPath = 0,
+		currentPath = nil,
 		-- manager.stateManager = StateManager:new()
 		currentState = "MAIN_MENU",
 		uiManager = nil,
 	}
 
 	setmetatable(manager, GameManager)
-
+	manager.stateManager:init(CONFIG)
+	manager.player = Player:new("player", manager.stateManager)
 	manager:setupPathRequestHandler()
-	manager.runContent = RunManager:new(manager.eventManager, self.player)
+	manager.runContent = RunManager:new(manager.eventManager, manager.stateManager, manager.player)
 
-	manager.uiManager = UIManager:new(manager.eventManager, manager.player)
-
+	manager.uiManager = UIManager:new(manager.eventManager, manager.stateManager, manager.player)
 	manager.eventManager:on(EventManager.Types.STATE_CHANGED, function(newState)
 		manager:transitionToState(newState)
 	end)
@@ -42,14 +45,14 @@ end
 
 function GameManager:setupPathRequestHandler()
 	self.eventManager:on(EventManager.Types.REQUEST_CURRENT_RUN_PATH, function()
-		local currentPath = self.runContent:CurrPath()
-		self.currentPath = currentPath -- Update currentPath
+		local currentPath = self.stateManager:get("run.currentPath")
+		self.stateManager:set("run.currentPath", currentPath)
 		self.eventManager:emit(EventManager.Types.CURRENT_RUN_PATH_RESPONSE, { currentPath = currentPath })
 	end)
 end
 
 function GameManager:transitionToState(newState)
-	self.currentState = newState
+	self.stateManager:set("currentScreen", newState)
 	self.eventManager:emit("PreStateChange", self.currentState)
 
 	-- You can add more specific state transition logic here
@@ -63,7 +66,7 @@ end
 
 function GameManager:draw()
 	self.uiManager:Draw()
-	love.graphics.print("Current state: " .. type(self.currentPath), 10, 10)
+	love.graphics.print("Current state: " .. self.currentState, 10, 10)
 end
 
 function GameManager:startBattle(levelData)

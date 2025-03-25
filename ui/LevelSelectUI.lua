@@ -33,12 +33,13 @@ local SCREEN_CONSTANTS = {
 local LevelSelectUI = {}
 
 -- Constructor
-function LevelSelectUI:new(eventManager, backgrounds)
+function LevelSelectUI:new(eventManager, stateManager, backgrounds)
 	local screenWidth = love.graphics.getWidth() -- make global
 	local screenHeight = love.graphics.getHeight()
 
 	local object = {
 		eventManager = eventManager,
+		stateManager = stateManager,
 		backgrounds = shallowcopy(backgrounds),
 		levels = nil,
 		levelSelectModel = nil,
@@ -89,7 +90,8 @@ function LevelSelectUI:_createLevelModel()
 		function()
 			self.eventManager:emit(EventManager.Types.STATE_CHANGED, "BATTLE")
 		end,
-		self.eventManager
+		self.eventManager,
+		self.stateManager
 	)
 end
 

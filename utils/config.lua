@@ -9,7 +9,7 @@ Config.DECK_SIZE = 52
 Config.INITIAL_HAND_SIZE = 5
 
 Config.PLAYER_STATS = {
-	damage = 3,
+	damage = 10,
 	health = 10,
 	shield = 2,
 	speed = 250,
@@ -36,7 +36,7 @@ Config.ENEMY_STATS = {
 		"zigzag",
 	},
 	aimsAtPlayer = false,
-	shoot_probability = 0.7,
+	shoot_probability = 0.2,
 }
 
 Config.ASSETS = {

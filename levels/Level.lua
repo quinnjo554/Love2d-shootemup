@@ -2,8 +2,9 @@ local CONFIG = require("utils.config")
 local Level = {}
 local EnemyFormation = require("entities.EnemyFormation")
 
-function Level:new(name, previewPath, imgs, roundNumber, player)
+function Level:new(name, previewPath, imgs, player, stateManager)
 	local level = {
+		stateManager = stateManager,
 		previewImg = love.graphics.newImage(previewPath),
 		previewPath = previewPath,
 		paths = imgs,
@@ -13,7 +14,7 @@ function Level:new(name, previewPath, imgs, roundNumber, player)
 		winCondition = "",
 		perspective = { "3d", "isometric", "sidescroller" },
 		formations = {}, -- Store all formations for this level
-		difficultyLevel = roundNumber or 1,
+		difficultyLevel = 1,
 		player = player,
 	}
 
@@ -50,7 +51,8 @@ function Level:GenerateEnemies(roundNumber)
 		roundNumber,
 		love.graphics.getWidth() / 2, -- Center X
 		love.graphics.getHeight() / 4, -- Near top of screen
-		player
+		self.player,
+		self.stateManager
 	)
 
 	-- Store the formation and get all enemies
