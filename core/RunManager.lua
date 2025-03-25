@@ -1,36 +1,40 @@
 local RunManager = {}
 local LinkedList = require("utils.LinkedList")
 local Level = require("levels.Level")
+local EventManager = require("core.EventManager")
 local CONFIG = require("utils.config")
 
-function RunManager:new(eventManager, player)
+function RunManager:new(eventManager, stateManager, player)
 	local manager = {
-		paths = LinkedList.new(), -- lined list of level arrays
-		currentLevel = nil,
-		levelsCompleted = {}, -- for not giving duplicate enemies and levels if I want to make each unique
-		currentProgress = 0, -- how far in the run are you
-		currentBoonsEquiped = {}, -- make a config of all possible boons and ones that can be unlocked perminantly vs in run boons
+		eventManager = eventManager,
+		stateManager = stateManager,
 		player = player,
 	}
 
 	setmetatable(manager, { __index = RunManager })
+	local paths = LinkedList:new()
 
-	manager.currentLevel = manager.paths:peekFirst()
+	manager.stateManager:set("run.paths", paths)
+	manager.stateManager:set("run.currentProgress", 0)
+	manager.stateManager:set("run.levelsCompleted", {})
+
 	manager:InitPaths()
-	manager:setupPathRequestHandler(eventManager)
+
+	manager.stateManager:set("run.currentPath", paths:peekFirst())
 	return manager
 end
 
 function RunManager:setCurrentLevel(level)
-	self.currentlevel = level
+	self.stateManager:set("run.currentLevel", level)
 end
 
 function RunManager:getCurrentLevel()
-	return self.currentlevel
+	return self.stateManager:get("run.currentLevel")
 end
 
 function RunManager:InitPaths()
 	--paths
+	local paths = self.stateManager:get("run.paths")
 	love.math.setRandomSeed(os.time())
 	for i = 1, 10 do
 		local levelArray = {}
@@ -38,18 +42,20 @@ function RunManager:InitPaths()
 		for j = 1, love.math.random(1, 3) do
 			local random = love.math.random(1, 3)
 			local img = self:generateImage(random)
-			table.insert(levelArray, Level:new("level", img.preview, img, self.player))
+			table.insert(levelArray, Level:new("level", img.preview, img, self.player, self.stateManager))
 		end
-		self.paths:append(levelArray)
+		paths:append(levelArray)
 	end
 end
 
 function RunManager:peekNextPath()
-	return self.paths:peekNext(self.paths:peekFirst())
+	local paths = self.stateManager:get("run.paths")
+	return paths:peekNext(paths:peekFirst())
 end
 
 function RunManager:CurrPath()
-	return self.paths:peekFirst()
+	local paths = self.stateManager:get("run.paths")
+	return paths:peekFirst()
 end
 
 function RunManager:generateImage(random)
@@ -66,6 +72,12 @@ function RunManager:generateImage(random)
 	end
 end
 
-function RunManager:setupPathRequestHandler(eventManager) end
+function RunManager:setupPathRequestHandler()
+	self.eventManager:on(EventManager.Types.REQUEST_CURRENT_RUN_PATH, function()
+		local currentPath = self:CurrPath()
+		self.stateManager:set("run.currentPath", currentPath)
+		self.eventManager:emit(EventManager.Types.CURRENT_RUN_PATH_RESPONSE, { currentPath = currentPath })
+	end)
+end
 
 return RunManager

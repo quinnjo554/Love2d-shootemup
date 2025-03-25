@@ -1,6 +1,4 @@
--- core/GameManager.lua
--- TODO: Take funtionality from main.lua and put it in GameManager.lua
--- TODO: Make a asset manager so you can store the image, x,y,w,z
+-- core/UIManager.lua
 local MainMenuUI = require("ui/MainMenuUI")
 local LevelSelectUI = require("ui/LevelSelectUI")
 local BattleUI = require("ui.BattleUi")
@@ -8,36 +6,36 @@ local CreateCommonBackgrounds = require("utils.sharedBackgrounds.sharedBackgroun
 local EventManager = require("core.EventManager")
 
 local UIManager = {}
--- Find better way to share backgrounds for main and level, I have a fix, just add the model to the main menu
+-- Create shared backgrounds once
 local sharedBackgrounds = CreateCommonBackgrounds()
 
-function UIManager:new(eventManager, player)
+function UIManager:new(eventManager, stateManager, player)
 	local object = {
-		-- deckBuilder = nil,
-		currentScreen = "",
 		eventManager = eventManager,
+		stateManager = stateManager,
+		currentScreen = nil,
 		player = player,
+
+		-- Screen components
 		mainMenu = nil,
 		level = nil,
 		battle = nil,
 	}
 
-	object.mainMenu = MainMenuUI:new(object.eventManager, sharedBackgrounds)
-	-- Create LevelSelectUI with event-based transition
-	object.level = LevelSelectUI:new(object.eventManager, sharedBackgrounds)
-
-	object.battle = BattleUI:new(object.eventManager, object.player)
-
 	setmetatable(object, { __index = UIManager })
 
-	-- subscribe to state changes
-	eventManager:on(EventManager.Types.STATE_CHANGED, function(newState)
-		object:SetCurrentScreen(newState)
+	-- Initialize UI screens with state manager
+	object.mainMenu = MainMenuUI:new(object.eventManager, stateManager, sharedBackgrounds)
+	object.level = LevelSelectUI:new(object.eventManager, stateManager, sharedBackgrounds)
+	object.battle = BattleUI:new(object.eventManager, stateManager, player)
+
+	-- Subscribe to state changes
+	stateManager:subscribe("currentScreen", function(newScreen)
+		object:SetCurrentScreen(newScreen)
 	end)
 
 	return object
 end
--- Main menu screen will just be Background and a button
 
 function UIManager:SetCurrentScreen(screen)
 	if screen == "MAIN_MENU" then
@@ -64,14 +62,15 @@ function UIManager:HandleMouseMoved(x, y)
 end
 
 function UIManager:Update(dt, mouse_x, mouse_y)
-	if self.currentScreen then
+	if self.currentScreen and self.currentScreen.update then
 		self.currentScreen:update(dt, mouse_x, mouse_y)
 	end
 end
 
 function UIManager:Draw()
-	if self.currentScreen then
+	if self.currentScreen and self.currentScreen.draw then
 		self.currentScreen:draw()
 	end
 end
+
 return UIManager

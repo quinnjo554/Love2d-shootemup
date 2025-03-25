@@ -5,8 +5,9 @@ local CONFIG = require("utils.config")
 EnemyFormation = {}
 
 EnemyFormation.__index = EnemyFormation
-function EnemyFormation:new(formationConfig, level, startX, startY, player)
+function EnemyFormation:new(formationConfig, level, startX, startY, player, stateManager)
 	local formation = {
+		stateManager = stateManager,
 		config = formationConfig,
 		enemies = {},
 		offsetX = 0,
@@ -60,7 +61,7 @@ function EnemyFormation:generateEnemies(level)
 					x,
 					y,
 					CONFIG.ASSETS.EMEMY_SPRITE,
-					level
+					self.stateManager
 				)
 
 				-- Store grid position for formation updates
